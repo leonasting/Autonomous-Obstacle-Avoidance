@@ -27,16 +27,18 @@ class GridPOMDP(object):
     def get_new_val(self):    
         a=random.randint(0,self.side-1)
         b=random.randint(0,self.side-1)
+        print(a,b)
         new=[a,b]
         return new
     
     def add_bomb(self):
         for i in range(self.bomb_count):
-            new=get_new_val()
+            new=self.get_new_val()
             while new in self.ls_filled:
-                new=get_new_val()
+                new=self.get_new_val()
             
             self.ls_filled.append(new)
+            print(new)
             self.reward[new[0],new[1]]=-100
             
     def is_terminal_state(self,current_row_index, current_column_index):
@@ -69,6 +71,78 @@ class GridPOMDP(object):
         new_column_index -= 1
         
       return new_row_index, new_column_index
+  
+    
+    def q_learning(self,episode_count=1000,learning_rate = 0.9, discount_factor = 0.9,epsilon = 0.9):
+        """
+        #define training parameters
+    
+        epsilon:the percentage of time when we should take the best action (instead of a random action)
+        discount_factor:discount factor for future rewards
+        learning_rate:the rate at which the AI agent should learn
+        """
+  
+    
+
+        #run through 1000 training episodes
+        ls_episode_reward=[]
+        for episode in range(episode_count):
+            #get the starting location for this episode
+            row_index , column_index = self.start[0],self.start[1]
+            #continue taking actions (i.e., moving) until we reach a terminal state
+            #(i.e., until we reach the item packaging area or crash into an item storage location)
+            reward_of_episode = 0
+            while not self.is_terminal_state(row_index, column_index):#For each Step
+                #choose which action to take (i.e., where to move next)
+                action_index = self.get_next_action(row_index, column_index, epsilon)
+        
+                #perform the chosen action, and transition to the next state (i.e., move to the next location)
+                old_row_index, old_column_index = row_index, column_index #store the old row and column indexes
+                row_index, column_index = self.get_next_location(row_index, column_index, action_index)
+        
+                #receive the reward for moving to the new state, and calculate the temporal difference
+                reward = self.reward[row_index, column_index]
+                reward_of_episode+=reward
+                old_q_value = self.q_val[old_row_index, old_column_index, action_index]
+                temporal_difference = reward + (discount_factor * np.max(self.q_val[row_index, column_index])) - old_q_value
+        
+                #update the Q-value for the previous state and action pair
+                new_q_value = old_q_value + (learning_rate * temporal_difference)
+                self.q_val[old_row_index, old_column_index, action_index] = new_q_value
+            ls_episode_reward.append(reward_of_episode)
+        print('Training complete!')
+    
+    def get_q_val_policy(self):
+        ls_row=[]
+        for i in range(self.side):
+            ls_col=[]
+            for j in range(self.side):
+                ls_col.append(round(max(self.q_val[i][j]),2))
+            ls_row.append(ls_col)
+        
+        df_q_val=pd.DataFrame(ls_row)
+        actions_symbol = ['^', '>', 'v', '<']
+        ls_row=[]
+        for i in range(self.side):
+            ls_col=[]
+            for j in range(self.side):
+                ls_col.append(actions_symbol[np.argmax(self.q_val[i][j])])
+            ls_row.append(ls_col)
+        
+        for i in self.ls_filled:
+            if i==self.start:
+                continue
+                
+            ls_row[i[0]][i[1]]='B'
+        
+        ls_row[self.start[0]][self.start[1]]=ls_row[self.start[0]][self.start[1]]+'S'
+        ls_row[self.goal[0]][self.goal[1]]='G'
+            
+        df_pol=pd.DataFrame(ls_row)
+            
+        
+        return df_q_val,df_pol
+    
     
 
 
@@ -81,8 +155,10 @@ if __name__=="__main__":
     #     new=get_new_val()
         
     # ls_filled.append(new)
-    new_grid=GridPOMDP(3,1,start=[0,0],goal=[2,2]) 
+    new_grid=GridPOMDP(8,4,start=[0,0],goal=[7,7]) 
     new_grid.add_bomb()
-    
-    
+    new_grid.q_learning()
+    new_grid.q_val
+    df_q_val,df_pol=new_grid.get_q_val_policy()
+    df_reward=pd.DataFrame(new_grid.reward)
     
