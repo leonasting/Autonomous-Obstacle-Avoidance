@@ -1,0 +1,11 @@
+Game Information:
+User Inputs/Random Inputs:-
+Size of the Grid: 6*6 - 9*9
+Count of bombs 5-9 Random distribution/User Input
+start = user input/ random
+goal = user input/random
+count of episodes.
+
+Algorithm Performance after 10 episodes 
+200 episodes
+count of episodes
