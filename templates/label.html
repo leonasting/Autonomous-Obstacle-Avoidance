@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}News Description Classfier{% endblock %}
+
+{% block content %}
+<p style="margin-left: 15px;">Optimal Policy:</p>
+
+{% for table in tables %}
+            {{titles[loop.index]}}
+            {{ table|safe }}
+{% endfor %}
+
+{% endblock %}
