@@ -73,7 +73,7 @@ class GridPOMDP(object):
       return new_row_index, new_column_index
   
     
-    def q_learning(self,episode_count=500,learning_rate = 0.9, discount_factor = 1,epsilon = 0.9):
+    def q_learning(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.9):
         """
         #define training parameters
     
@@ -119,11 +119,14 @@ class GridPOMDP(object):
             # get the starting location for this episode
             row_index, column_index = self.start[0], self.start[1]
             reward_of_episode = 0
+            # Choose action from current position using policy derived from (e-greedy)
             action_index = self.get_next_action(row_index, column_index, epsilon)
             while not self.is_terminal_state(row_index, column_index):  # For each Step
-                # perform the chosen action, and transition to the next state (i.e., move to the next location)
+                # Saving old position
                 old_row_index, old_column_index = row_index, column_index  # store the old row and column indexes
                 old_action_index = action_index
+
+                # perform the chosen action, and transition to the next state (i.e., move to the next location)
                 row_index, column_index = self.get_next_location(row_index, column_index, action_index)
 
                 # receive the reward for moving to the new state, and calculate the temporal difference
@@ -132,6 +135,8 @@ class GridPOMDP(object):
                 old_q_value = self.q_val[old_row_index, old_column_index, action_index]
 
                 action_index = self.get_next_action(row_index, column_index, epsilon)
+
+                # SARSA Formula : temporal_difference = Reward + (Discount * Q(S', A') - Q(S,A))
                 temporal_difference = reward + (
                             discount_factor * self.q_val[row_index, column_index, action_index]) - old_q_value
 
@@ -187,10 +192,10 @@ if __name__=="__main__":
     # ls_filled.append(new)
     new_grid=GridPOMDP(8,4,start=[0,0],goal=[7,7]) 
     new_grid.add_bomb()
-    new_grid.q_learning()
-    #new_grid.SARSA()
+    # new_grid.q_learning()
+    new_grid.SARSA(episode_count=2000)
     new_grid.q_val
     df_q_val,df_pol=new_grid.get_q_val_policy()
     df_reward=pd.DataFrame(new_grid.reward)
-    # print(df_pol)
+    print(df_pol)
     
