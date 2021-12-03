@@ -111,7 +111,56 @@ class GridPOMDP(object):
                 self.q_val[old_row_index, old_column_index, action_index] = new_q_value
             ls_episode_reward.append(reward_of_episode)
         print('Training complete!')
-    
+
+    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.9):
+        """
+                #define training parameters
+
+                epsilon:the percentage of time when we should take the best action (instead of a random action)
+                discount_factor:discount factor for future rewards
+                learning_rate:the rate at which the AI agent should learn
+                """
+        # run through 1000 training episodes
+        ls_episode_reward = []
+        for episode in range(episode_count):
+            # get the starting location for this episode
+            row_index, column_index = self.start[0], self.start[1]
+
+            # continue taking actions (i.e., moving) until we reach a terminal state
+            # (i.e., until we reach the item packaging area or crash into an item storage location)
+            reward_of_episode = 0
+
+            # choose which action to take (i.e., where to move next)
+            action_index = self.get_next_action(row_index, column_index, epsilon)
+            while not self.is_terminal_state(row_index, column_index):  # For each Step
+                # perform the chosen action, and transition to the next state (i.e., move to the next location)
+                row_index, column_index = self.get_next_location(row_index, column_index, action_index)
+
+                # State[now], Action(now), Reward(now) -> State(next)
+                next_action_index = self.get_next_action(row_index, column_index, epsilon)
+                # perform the chosen action, and transition to the next state (i.e., move to the next location)
+                old_row_index, old_column_index = row_index, column_index  # store the old row and column indexes
+
+                # State(next) -> Action(next)
+                row_index, column_index = self.get_next_location(row_index, column_index, next_action_index)
+
+                # reward(now)
+                reward = self.reward[old_row_index, old_column_index]
+                reward_of_episode += reward
+
+                old_q_value = self.q_val[old_row_index, old_column_index, action_index]
+
+                # SARSA Formula : reward(now) + gamma * Q(next) - Q(now)
+                temporal_difference = reward + (discount_factor * self.q_val[row_index, column_index]) - old_q_value
+
+                # update the Q-value for the previous state and action pair
+                new_q_value = old_q_value + (learning_rate * temporal_difference)
+                self.q_val[old_row_index, old_column_index, action_index] = new_q_value
+
+                action_index = next_action_index
+            ls_episode_reward.append(reward_of_episode)
+        print('Training complete!')
+
     def get_q_val_policy(self):
         ls_row=[]
         for i in range(self.side):
