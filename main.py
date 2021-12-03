@@ -73,7 +73,7 @@ class GridPOMDP(object):
       return new_row_index, new_column_index
   
     
-    def q_learning(self,episode_count=1000,learning_rate = 0.9, discount_factor = 0.9,epsilon = 0.9):
+    def q_learning(self,episode_count=500,learning_rate = 0.9, discount_factor = 1,epsilon = 0.9):
         """
         #define training parameters
     
@@ -113,51 +113,32 @@ class GridPOMDP(object):
         print('Training complete!')
 
     def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.9):
-        """
-                #define training parameters
-
-                epsilon:the percentage of time when we should take the best action (instead of a random action)
-                discount_factor:discount factor for future rewards
-                learning_rate:the rate at which the AI agent should learn
-                """
         # run through 1000 training episodes
         ls_episode_reward = []
         for episode in range(episode_count):
             # get the starting location for this episode
             row_index, column_index = self.start[0], self.start[1]
-
-            # continue taking actions (i.e., moving) until we reach a terminal state
-            # (i.e., until we reach the item packaging area or crash into an item storage location)
             reward_of_episode = 0
-
-            # choose which action to take (i.e., where to move next)
             action_index = self.get_next_action(row_index, column_index, epsilon)
             while not self.is_terminal_state(row_index, column_index):  # For each Step
                 # perform the chosen action, and transition to the next state (i.e., move to the next location)
+                old_row_index, old_column_index = row_index, column_index  # store the old row and column indexes
+                old_action_index = action_index
                 row_index, column_index = self.get_next_location(row_index, column_index, action_index)
 
-                # State[now], Action(now), Reward(now) -> State(next)
-                next_action_index = self.get_next_action(row_index, column_index, epsilon)
-                # perform the chosen action, and transition to the next state (i.e., move to the next location)
-                old_row_index, old_column_index = row_index, column_index  # store the old row and column indexes
-
-                # State(next) -> Action(next)
-                row_index, column_index = self.get_next_location(row_index, column_index, next_action_index)
-
-                # reward(now)
-                reward = self.reward[old_row_index, old_column_index]
+                # receive the reward for moving to the new state, and calculate the temporal difference
+                reward = self.reward[row_index, column_index]
                 reward_of_episode += reward
-
                 old_q_value = self.q_val[old_row_index, old_column_index, action_index]
 
-                # SARSA Formula : reward(now) + gamma * Q(next) - Q(now)
-                temporal_difference = reward + (discount_factor * self.q_val[row_index, column_index]) - old_q_value
+                action_index = self.get_next_action(row_index, column_index, epsilon)
+                temporal_difference = reward + (
+                            discount_factor * self.q_val[row_index, column_index, action_index]) - old_q_value
 
                 # update the Q-value for the previous state and action pair
                 new_q_value = old_q_value + (learning_rate * temporal_difference)
-                self.q_val[old_row_index, old_column_index, action_index] = new_q_value
+                self.q_val[old_row_index, old_column_index, old_action_index] = new_q_value
 
-                action_index = next_action_index
             ls_episode_reward.append(reward_of_episode)
         print('Training complete!')
 
@@ -207,7 +188,9 @@ if __name__=="__main__":
     new_grid=GridPOMDP(8,4,start=[0,0],goal=[7,7]) 
     new_grid.add_bomb()
     new_grid.q_learning()
+    #new_grid.SARSA()
     new_grid.q_val
     df_q_val,df_pol=new_grid.get_q_val_policy()
     df_reward=pd.DataFrame(new_grid.reward)
+    # print(df_pol)
     
