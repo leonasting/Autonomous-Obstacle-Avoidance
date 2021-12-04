@@ -112,7 +112,7 @@ class GridPOMDP(object):
             ls_episode_reward.append(reward_of_episode)
         print('Training complete!')
 
-    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.9):
+    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=1):
         # run through 1000 training episodes
         ls_episode_reward = []
         for episode in range(episode_count):

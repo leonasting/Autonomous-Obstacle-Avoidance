@@ -8,9 +8,17 @@ Created on Sat Nov 27 15:02:16 2021
 from flask import Flask, redirect, url_for, render_template, request
 from main import GridPOMDP
 import pandas as pd
-     
+import plotly   
+import plotly.express as px
+import json
+
+fig = px.imshow([[1, 20, 30],
+                 [20, 1, 60],
+                 [30, 60, 1]]) 
 
 
+graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+#fig.show()
 app = Flask(__name__)
 
 @app.route("/")
@@ -39,8 +47,9 @@ def main():
             df_pol[ind_col] = df_pol[ind_col].map(lambda x:".  "+ x+"   .")
         df=df_pol
         
-       
-        return render_template("label.html",tables=[df.to_html(classes='data')], titles=df.columns.values)
+        header="header"
+        description ="description"
+        return render_template("label.html",tables=[df.to_html(classes='data')], titles=df.columns.values,graphJSON=graphJSON, header=header,description=description)
     else:
         return render_template("main.html")
 
