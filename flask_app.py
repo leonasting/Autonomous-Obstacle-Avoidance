@@ -76,7 +76,7 @@ def gather_img():
 
 
 @app.route("/motion")
-def mjpeg():
+def motion():
     return Response(gather_img(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route("/<usr>")
