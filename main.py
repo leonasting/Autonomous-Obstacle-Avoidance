@@ -107,20 +107,30 @@ class GridPOMDP(object):
         #run through 1000 training episodes
         ls_episode_reward=[]
         for episode in range(episode_count):
+            ls_path = []
             #get the starting location for this episode
             row_index , column_index = self.start[0],self.start[1]
             #continue taking actions (i.e., moving) until we reach a terminal state
             #(i.e., until we reach the item packaging area or crash into an item storage location)
             reward_of_episode = 0
+            ls_path.append([row_index, column_index])
             while not self.is_terminal_state(row_index, column_index):#For each Step
                 #choose which action to take (i.e., where to move next)
                 action_index = self.get_next_action(row_index, column_index, epsilon)
         
                 #perform the chosen action, and transition to the next state (i.e., move to the next location)
                 old_row_index, old_column_index = row_index, column_index #store the old row and column indexes
+
+
                 row_index, column_index = self.get_next_location(row_index, column_index, action_index)
+                ls_path.append([row_index, column_index])
+
                 if row_index==self.goal[0] and column_index==self.goal[1]:
                     self.reached=True
+
+                if row_index==self.goal[0] and column_index==self.goal[1]:
+                    self.reached=True
+                    self.path=ls_path
 
                 #receive the reward for moving to the new state, and calculate the temporal difference
                 reward = self.reward[row_index, column_index]
@@ -135,7 +145,7 @@ class GridPOMDP(object):
         print('Training complete!')
         self.ls_reward=ls_episode_reward
 
-    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.90):
+    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.99):
         # run through 1000 training episodes
         ls_episode_reward = []
 
@@ -257,8 +267,8 @@ if __name__=="__main__":
     # ls_filled.append(new)
     new_grid=GridPOMDP(10,10,start=[0,0],goal=[7,7])
     new_grid.add_bomb()
-    # new_grid.q_learning()
-    new_grid.SARSA(episode_count=1000)
+    new_grid.q_learning()
+    # new_grid.SARSA(episode_count=1000)
     new_grid.q_val
     df_q_val,df_pol=new_grid.get_q_val_policy()
     df_reward=pd.DataFrame(new_grid.reward)
