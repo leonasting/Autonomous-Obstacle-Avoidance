@@ -54,7 +54,6 @@ def main():
         return render_template("main.html")
 
 # motion image (example plot)
-@app.route("/motion")
 def plot_data():
     x1 = np.random.randn(5)
     x2 = np.random.randn(10)
