@@ -292,8 +292,8 @@ if __name__=="__main__":
     
     plt.figure()
     df_res.plot(title='Q-learning vs SARSA Accumulated Rewards')
-    plt.xlabel('xlabel')
-    plt.ylabel('ylabel')
+    plt.xlabel('Episodes')
+    plt.ylabel('Accumulated Rewards')
     plt.show()
     
     

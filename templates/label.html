@@ -1,18 +1,25 @@
 {% extends "base.html" %}
-{% block title %}News Description Classfier{% endblock %}
+{% block title %}Reinforcement Learning in Grid world with Mines{% endblock %}
 
 {% block content %}
-<p style="margin-left: 15px;">Optimal Policy:</p>
+<p style="margin-left: 15px;">Agent Path with {{option}}:</p>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
 
-{% for table in tables %}
-            {{titles[loop.index]}}
-            {{ table|safe }}
-{% endfor %}
+        {% for table in tables %}
+                    
+                    {{ table|safe }}
+                    {{titles[loop.index]}}
+        {% endfor %}
 
-
- <h1>{{header}}</h1>
- <div id="chart" class="chart"></div>
- <div>{{description}}</div>
-
+        </div>
+        <div class="col-md-6">
+        
+        <button class="btn btn-primary" onclick="window.location.href='http://localhost:5000/main'">Return</button>
+        </div>
+    </div>
+</div>
+ 
 
 {% endblock %}
