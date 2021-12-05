@@ -73,7 +73,7 @@ def main():
         df=new_grid.display_path()
         for ind_col in list(df.columns):
             df[ind_col] = df[ind_col].map(lambda x:".  "+ x+"   .")
-        return render_template("label.html",tables=[df.to_html(classes='data')], titles=df.columns.values)
+        return render_template("label.html",tables=[df.to_html(classes='data')],option=option, titles=df.columns.values)
     #,graphJSON=graphJSON, header=header,option=option,description=description)
     else:
         return render_template("main.html")
