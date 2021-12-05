@@ -8,7 +8,7 @@ This is a temporary script file.
 import numpy as np
 import pandas as pd
 import random
-
+import matplotlib.pyplot as plt 
 class GridPOMDP(object):
     def __init__(self,side,bomb_count,start=[-1,-1],goal=[-1,-1]):
     #N= count of states-225[]
@@ -23,6 +23,12 @@ class GridPOMDP(object):
         self.q_val=np.zeros((self.side,self.side, 4))
         #numeric action codes: 0 = up, 1 = right, 2 = down, 3 = left
         self.actions = ['up', 'right', 'down', 'left']
+        self.ls_reward=[]
+        self.reached=False
+        self.path=[]
+    def reset_q_val(self):
+        self.reached=False
+        self.q_val=np.zeros((self.side,self.side, 4))
         
     def get_new_val(self):    
         a=random.randint(0,self.side-1)
@@ -49,13 +55,27 @@ class GridPOMDP(object):
         return True  
     
     #define an epsilon greedy algorithm that will choose which action to take next (i.e., where to move next)
-    def get_next_action(self,current_row_index, current_column_index, epsilon):
-  #if a randomly chosen value between 0 and 1 is less than epsilon, 
-  #then choose the most promising value from the Q-table for this state.
-      if np.random.random() < epsilon:
-        return np.argmax(self.q_val[current_row_index, current_column_index])
-      else: #choose a random action
-        return np.random.randint(4)
+    def get_next_action(self,current_row_index, current_column_index, epsilon,exclude=False):
+        #if a randomly chosen value between 0 and 1 is less than epsilon, 
+        #then choose the most promising value from the Q-table for this state.
+        if exclude:
+            ls_action = [0,1,2,3]
+
+
+            if current_row_index == 0:
+                ls_action.remove(2)
+            if current_column_index==0:
+                ls_action.remove(3)
+            if current_row_index == self.side-1:
+                ls_action.remove(0)
+            if current_column_index == self.side-1:
+                ls_action.remove(1)
+            return random.choice(ls_action)
+         
+        if np.random.random() < epsilon:
+            return np.argmax(self.q_val[current_row_index, current_column_index])
+        else: #choose a random action
+            return np.random.randint(4)
     
     #define a function that will get the next location based on the chosen action
     def get_next_location(self,current_row_index, current_column_index, action_index):
@@ -87,6 +107,7 @@ class GridPOMDP(object):
         #run through 1000 training episodes
         ls_episode_reward=[]
         for episode in range(episode_count):
+            ls_path=[]
             #get the starting location for this episode
             row_index , column_index = self.start[0],self.start[1]
             #continue taking actions (i.e., moving) until we reach a terminal state
@@ -98,8 +119,16 @@ class GridPOMDP(object):
         
                 #perform the chosen action, and transition to the next state (i.e., move to the next location)
                 old_row_index, old_column_index = row_index, column_index #store the old row and column indexes
+                ls_path.append([row_index,column_index])
+                
                 row_index, column_index = self.get_next_location(row_index, column_index, action_index)
-        
+                if row_index==self.goal[0] and column_index==self.goal[1]:
+                    self.reached=True
+                    self.path=ls_path
+                
+                if row_index==self.goal[0] and column_index==self.goal[1]:
+                    self.reached=True
+
                 #receive the reward for moving to the new state, and calculate the temporal difference
                 reward = self.reward[row_index, column_index]
                 reward_of_episode+=reward
@@ -111,13 +140,20 @@ class GridPOMDP(object):
                 self.q_val[old_row_index, old_column_index, action_index] = new_q_value
             ls_episode_reward.append(reward_of_episode)
         print('Training complete!')
+        self.ls_reward=ls_episode_reward
+        if row_index==self.goal[0] and column_index==self.goal[1]:
+            self.reached=True
+            self.path=ls_path
 
-    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=1):
+    def SARSA(self, episode_count=1000, learning_rate=0.9, discount_factor=0.9, epsilon=0.99):
         # run through 1000 training episodes
         ls_episode_reward = []
+
         for episode in range(episode_count):
+            ls_path=[]
             # get the starting location for this episode
             row_index, column_index = self.start[0], self.start[1]
+
             reward_of_episode = 0
             # Choose action from current position using policy derived from (e-greedy)
             action_index = self.get_next_action(row_index, column_index, epsilon)
@@ -125,9 +161,12 @@ class GridPOMDP(object):
                 # Saving old position
                 old_row_index, old_column_index = row_index, column_index  # store the old row and column indexes
                 old_action_index = action_index
-
+                ls_path.append([row_index,column_index])
                 # perform the chosen action, and transition to the next state (i.e., move to the next location)
                 row_index, column_index = self.get_next_location(row_index, column_index, action_index)
+                if row_index==self.goal[0] and column_index==self.goal[1]:
+                    self.reached=True
+                    self.path=ls_path
 
                 # receive the reward for moving to the new state, and calculate the temporal difference
                 reward = self.reward[row_index, column_index]
@@ -135,6 +174,9 @@ class GridPOMDP(object):
                 old_q_value = self.q_val[old_row_index, old_column_index, action_index]
 
                 action_index = self.get_next_action(row_index, column_index, epsilon)
+                if row_index==old_row_index and column_index == old_column_index:
+                    continue
+                    row_index, column_index = self.get_next_location(row_index, column_index, action_index,exclude_opt=True)
 
                 # SARSA Formula : temporal_difference = Reward + (Discount * Q(S', A') - Q(S,A))
                 temporal_difference = reward + (
@@ -146,7 +188,9 @@ class GridPOMDP(object):
 
             ls_episode_reward.append(reward_of_episode)
         print('Training complete!')
-
+        self.ls_reward = ls_episode_reward
+        if self.reached==False:
+            self.path=ls_path
     def get_q_val_policy(self):
         ls_row=[]
         for i in range(self.side):
@@ -178,7 +222,38 @@ class GridPOMDP(object):
         
         return df_q_val,df_pol
     
-    
+    def display_path(self):
+        actions_symbol = ['^', '>', 'v', '<']
+        ls_row = []
+        for i in range(self.side):
+            ls_col = []
+            for j in range(self.side):
+                if [i, j] in self.path:
+                    ls_col.append(actions_symbol[np.argmax(self.q_val[i][j])])
+                else:
+                    ls_col.append(' ')
+            ls_row.append(ls_col)
+
+        for i in self.ls_filled:
+            if i == self.start:
+                continue
+
+            ls_row[i[0]][i[1]] = 'B'
+
+        ls_row[self.start[0]][self.start[1]] = ls_row[self.start[0]][self.start[1]] + 'S'
+        ls_row[self.goal[0]][self.goal[1]] = 'G'
+
+        df_pol = pd.DataFrame(ls_row)
+
+        #ls_row = [[' ' for i in range(self.side)] for j in range(self.side)]
+
+        #for i in range(len(self.path)-1):
+        #    self.path[i]
+
+
+
+
+        return df_pol
 
 
 if __name__=="__main__":
@@ -190,12 +265,35 @@ if __name__=="__main__":
     #     new=get_new_val()
         
     # ls_filled.append(new)
-    new_grid=GridPOMDP(8,4,start=[0,0],goal=[7,7]) 
+    new_grid=GridPOMDP(7,7,start=[2,2],goal=[5,5])
     new_grid.add_bomb()
     # new_grid.q_learning()
-    new_grid.SARSA(episode_count=2000)
+    new_grid.q_learning(episode_count=1000)
+    print(new_grid.display_path())
+    
+    q_reward=new_grid.ls_reward
+    new_grid.reset_q_val()
+    
+    new_grid.SARSA(episode_count=1000)
+    print(new_grid.display_path())
+    sarsa_reward=new_grid.ls_reward
+    
     new_grid.q_val
     df_q_val,df_pol=new_grid.get_q_val_policy()
     df_reward=pd.DataFrame(new_grid.reward)
     print(df_pol)
+    print(df_q_val)
+    print(new_grid.ls_reward[-6:])
+    print(new_grid.reached)
+    print(new_grid.path)
+    print(new_grid.display_path())
+    df_res = pd.DataFrame({"Q- Learning Accumulated reward":q_reward,"SARSA Accumulated reward":sarsa_reward})
+     
+    
+    plt.figure()
+    df_res.plot(title='Q-learning vs SARSA Accumulated Rewards')
+    plt.xlabel('xlabel')
+    plt.ylabel('ylabel')
+    plt.show()
+    
     
