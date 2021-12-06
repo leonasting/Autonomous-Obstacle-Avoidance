@@ -6,20 +6,24 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6">
-
+        <p>Agent Starts from - <b>S</b></p>
+        <br>
+        <br>
         {% for table in tables %}
                     
                     {{ table|safe }}
                     {{titles[loop.index]}}
         {% endfor %}
-
+        <br>
+        Agent Reached Goal : <b>{{agent_success}}</b>
+        <br>
         </div>
         <div class="col-md-6">
         
         <button class="btn btn-primary" onclick="window.location.href='http://localhost:5000/main'">Return</button>
+        <button  class="btn btn-primary" onClick="window.location.reload();">Change Bomb locations</button>
         </div>
     </div>
 </div>
- 
 
 {% endblock %}
