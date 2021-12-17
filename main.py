@@ -18,7 +18,7 @@ class GridPOMDP(object):
         self.goal=goal
         self.reward=np.full((self.side,self.side),-1.)
         
-        self.reward[goal[0],goal[0]]=10000
+        self.reward[goal[0],goal[0]]=0
         self.ls_filled=[start,goal]
         self.q_val=np.zeros((self.side,self.side, 4))
         #numeric action codes: 0 = up, 1 = right, 2 = down, 3 = left
@@ -45,7 +45,7 @@ class GridPOMDP(object):
             
             self.ls_filled.append(new)
             print(new)
-            self.reward[new[0],new[1]]=-100
+            self.reward[new[0],new[1]]=-10
             
     def is_terminal_state(self,current_row_index, current_column_index):
   #if the reward for this location is -1, then it is not a terminal state (i.e., it is a 'white square')

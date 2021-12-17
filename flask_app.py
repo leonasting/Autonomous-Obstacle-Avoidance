@@ -12,7 +12,7 @@ import plotly
 import plotly.express as px
 import json
 import matplotlib.pyplot as plt 
-
+import os
 #fig = px.imshow([[1, 20, 30],
 #                 [20, 1, 60],
 #                 [30, 60, 1]]) 
@@ -56,14 +56,15 @@ def main():
             
             df_res = pd.DataFrame({"Q- Learning Accumulated reward":q_reward,"SARSA Accumulated reward":sarsa_reward})
              
-            
+            #Remove the old file
+            os.remove('./static/images/new_plot2.png')
             plt.figure()
             df_res.plot(title='Q-learning vs SARSA Accumulated Rewards')
             plt.xlabel('Episodes')
             plt.ylabel('Accumulated Rewards')
-            plt.savefig('./static/images/new_plot.png')
+            plt.savefig('./static/images/new_plot2.png')
             
-            return render_template("compare.html",table1=df.to_html(classes='data'),table2=df2.to_html(classes='data'),url ='./static/images/new_plot.png')
+            return render_template("compare.html",table1=df.to_html(classes='data'),table2=df2.to_html(classes='data'),url ='./static/images/new_plot2.png')
             
         
         elif option=="SARSA":
