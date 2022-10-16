@@ -1,4 +1,4 @@
-# 252-Fall-21-Q-learning-Grid
+# Obstacle Avoidance using Q Learning and Sarsa
 
 **Problem Description:**
 
